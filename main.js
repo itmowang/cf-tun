@@ -1,8 +1,16 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 const { exec } = require('child_process');  // 用于执行命令
-const configStore = require('../configStore');
+const configStore = require('../store/configStore');
 
+
+ipcMain.handle('get-config', () => {
+  return configStore.getConfig();
+});
+
+ipcMain.handle('save-config', (event, data) => {
+  return configStore.saveConfig(data);
+});
 
 // 检查 cloudflared 是否安装，如果未安装则启动安装
 ipcMain.handle('check-cloudflared', () => {
@@ -39,15 +47,21 @@ ipcMain.on('window-control', (event, action) => {
   else if (action === 'close') win.close();
 });
 
-
-ipcMain.handle('get-config', () => {
-  return configStore.getConfig();
+// 监听来自渲染进程的消息，启动隧道
+ipcMain.handle('start-tunnel', (event, tunnelToken) => {
+  return new Promise((resolve, reject) => {
+    const command = `cloudflared.exe service install ${tunnelToken}`;
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error: ${stderr}`);
+        reject(`Failed to start tunnel: ${stderr}`);
+      } else {
+        console.log(`Success: ${stdout}`);
+        resolve(`Tunnel started successfully: ${stdout}`);
+      }
+    });
+  });
 });
-
-ipcMain.handle('save-config', (event, data) => {
-  return configStore.saveConfig(data);
-});
-
 
 app.whenReady().then(() => {
   const win = new BrowserWindow({

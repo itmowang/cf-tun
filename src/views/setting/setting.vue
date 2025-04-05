@@ -8,24 +8,26 @@
   
       <!-- 表单卡片 -->
       <div class="bg-[#1e1e1e] border border-[#333] rounded-xl shadow-lg p-8 max-w-xl mx-auto space-y-6">
-        <!-- Token -->
+       
+  
+        <!-- Secret -->
         <div>
-          <label class="block text-gray-300 font-semibold mb-2">Token</label>
+          <label class="block text-gray-300 font-semibold mb-2">Account Id</label>
+          <input
+            v-model="form.userId"
+            type="text"
+            placeholder="请输入User Id"
+            class="w-full px-4 py-3 text-sm border border-gray-600 bg-[#2a2a2a] text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
+          />
+        </div>
+
+         <!-- Token -->
+         <div>
+          <label class="block text-gray-300 font-semibold mb-2">Api Token</label>
           <input
             v-model="form.token"
             type="text"
             placeholder="请输入 Cloudflare Token"
-            class="w-full px-4 py-3 text-sm border border-gray-600 bg-[#2a2a2a] text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
-          />
-        </div>
-  
-        <!-- Secret -->
-        <div>
-          <label class="block text-gray-300 font-semibold mb-2">密钥</label>
-          <input
-            v-model="form.secret"
-            type="password"
-            placeholder="请输入密钥"
             class="w-full px-4 py-3 text-sm border border-gray-600 bg-[#2a2a2a] text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
           />
         </div>
@@ -54,18 +56,18 @@
   
   const form = ref({
     token: '',
-    secret: ''
+    userId: ''
   })
   const saved = ref(false)
   
   onMounted(async () => {
     const config = await window.electronAPI.getConfig()
     form.value.token = config.token || ''
-    form.value.secret = config.secret || ''
+    form.value.userId = config.userId || ''
   })
   
   const save = async () => {
-    await window.electronAPI.saveConfig({ token: form.value.token, secret: form.value.secret })
+    await window.electronAPI.saveConfig({ token: form.value.token, userId: form.value.userId })
     saved.value = true
     setTimeout(() => (saved.value = false), 2000)
   }

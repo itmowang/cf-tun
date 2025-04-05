@@ -47,9 +47,16 @@
           <button
             type="button"
             @click="submit"
-            class="!px-5 !py-2 !text-base font-semibold bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 transition-all duration-200 shadow-xl rounded-lg transform hover:scale-105"
+            :class="{
+              'bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600': !loading,
+              'bg-gray-500': loading,
+            }"
+            class="!px-5 !py-2 !text-base font-semibold transition-all duration-200 shadow-xl rounded-lg transform hover:scale-105"
+            :disabled="loading"
           >
-            <i class="i-lucide:check mr-1"></i> 提交创建
+            <i v-if="!loading" class="i-lucide:check mr-1"></i>
+            <i v-if="loading" class="i-lucide:loader spin mr-1"></i>
+            {{ loading ? '正在创建...' : '提交创建' }}
           </button>
         </div>
       </div>
@@ -57,25 +64,85 @@
   </template>
   
   <script setup>
-  import { ref } from 'vue';
+  import { ref, onMounted, reactive } from 'vue';
   import { useRouter } from 'vue-router';
   import { ElMessage } from 'element-plus';
   
   const router = useRouter();
+  
+  // State to hold API Token and User ID
+  const state = reactive({
+    apiToken: null,
+    accountId: null,  // To store Cloudflare Account ID
+    loading: false,   // For button loading state
+  });
   
   const form = ref({
     name: '',
     speed: 100,
   });
   
-  const submit = () => {
+  // On component mount, get config from local storage
+  onMounted(async () => {
+    const config = await window.electronAPI.getConfig();
+    if (!config) {
+      ElMessage.error('配置文件未找到，请检查设置');
+      return;
+    }
+    state.apiToken = config.token || null;
+    state.accountId = config.userId || null;
+    console.log('Config:', config);
+  });
+  
+  // Create tunnel API call
+  const createTunnel = async (name) => {
+    const accountId = state.accountId;
+    const apiToken = state.apiToken;
+  
+    try {
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/cfd_tunnel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name,
+          config_src: "cloudflare",  // As per your provided API
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error creating tunnel: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  };
+  
+  // Submit form and create tunnel
+  const submit = async () => {
     if (!form.value.name || !form.value.speed) {
       ElMessage.error('请填写所有字段');
       return;
     }
-    // 表单提交的处理逻辑
-    ElMessage.success('网络隧道创建成功');
-    router.push('/networks');
+  
+    state.loading = true; // Start loading
+  
+    try {
+      const result = await createTunnel(form.value.name);
+      ElMessage.success('网络隧道创建成功');
+      console.log('Tunnel created:', result);
+      router.push('/networks');
+    } catch (error) {
+      ElMessage.error('创建隧道失败，请稍后再试');
+    } finally {
+      state.loading = false; // Stop loading
+    }
   };
   </script>
   

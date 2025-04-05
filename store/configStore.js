@@ -14,6 +14,7 @@ function saveConfig(data) {
   return true;
 }
 
+
 module.exports = {
   getConfig,
   saveConfig,
