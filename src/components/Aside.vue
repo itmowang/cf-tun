@@ -46,7 +46,7 @@ const { theme, toggleTheme } = useTheme();
 const menu = [
   { label: '首页', path: '/home', icon: 'i-lucide-home' },
   { label: '网络列表', path: '/networks', icon: 'i-lucide-list' }, 
-  { label: '设置', path: '/settings', icon: 'i-lucide-settings' },
+  { label: '设置', path: '/setting/setting', icon: 'i-lucide-settings' },
   { label: '关于', path: '/about', icon: 'i-lucide-info' }
 ];
 
