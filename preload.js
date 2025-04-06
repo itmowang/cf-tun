@@ -30,4 +30,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getConfig: () => ipcRenderer.invoke('get-config'),
     saveConfig: (data) => ipcRenderer.invoke('save-config', data),
     startTunnel: (tunnelToken) => ipcRenderer.invoke('start-tunnel', tunnelToken),
+    stopTunnel: (tunnelToken) => ipcRenderer.invoke('stop-tunnel', tunnelToken),
   });

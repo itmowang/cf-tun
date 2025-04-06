@@ -47,10 +47,10 @@ ipcMain.on('window-control', (event, action) => {
   else if (action === 'close') win.close();
 });
 
-// 监听来自渲染进程的消息，启动隧道
+// 启动隧道逻辑
 ipcMain.handle('start-tunnel', (event, tunnelToken) => {
   return new Promise((resolve, reject) => {
-    const command = `cloudflared.exe service install ${tunnelToken}`;
+    const command = `cloudflared tunnel run --token ${tunnelToken}`;
     exec(command, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error: ${stderr}`);
@@ -58,6 +58,23 @@ ipcMain.handle('start-tunnel', (event, tunnelToken) => {
       } else {
         console.log(`Success: ${stdout}`);
         resolve(`Tunnel started successfully: ${stdout}`);
+      }
+    });
+  });
+});
+
+// 关闭隧道逻辑
+ipcMain.handle('stop-tunnel', (event,tunnelToken) => {
+  return new Promise((resolve, reject) => {
+    // Windows 使用 taskkill，其他平台使用 pkill
+    const command = process.platform === 'win32' ? 'taskkill /F /IM cloudflared.exe' : 'pkill cloudflared';
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error stopping tunnel: ${stderr}`);
+        reject(`Failed to stop tunnel: ${stderr}`);
+      } else {
+        console.log(`Tunnel stopped successfully: ${stdout}`);
+        resolve(`Tunnel stopped successfully: ${stdout}`);
       }
     });
   });

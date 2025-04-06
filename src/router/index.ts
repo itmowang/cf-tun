@@ -7,6 +7,7 @@ const routes = [
   { path: '/error', component: () => import('../views/ErrorPage.vue') },
   { path: '/networks', component: () => import('../views/Networks.vue') }, // 网络列表页
   { path: '/networks/create', component: () => import('../views/networks/create.vue') }, // 网络创建页
+  { path: '/networks/ConfigureTunnel', component: () => import('../views/networks/ConfigureTunnel.vue') }, // 配置穿透页
   { path: '/setting/setting', component: () => import('../views/setting/setting.vue') }, // 网络创建页
 ];
 
